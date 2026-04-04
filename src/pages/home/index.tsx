@@ -17,6 +17,38 @@ const PRESET_QUESTIONS = [
   '怎么联系你?'
 ]
 
+interface ContactInfo {
+  type: 'wechat' | 'email' | 'github' | 'link'
+  label: string
+  value: string
+  icon: string
+  action: 'copy' | 'link'
+}
+
+const CONTACT_LIST: ContactInfo[] = [
+  {
+    type: 'wechat',
+    label: '微信',
+    value: 'xuqing_wechat',
+    icon: 'i-mdi-wechat',
+    action: 'copy'
+  },
+  {
+    type: 'email',
+    label: '邮箱',
+    value: 'xuqing@example.com',
+    icon: 'i-mdi-email',
+    action: 'copy'
+  },
+  {
+    type: 'github',
+    label: 'GitHub',
+    value: 'https://github.com/xuqing',
+    icon: 'i-mdi-github',
+    action: 'link'
+  }
+]
+
 const Home = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -24,6 +56,43 @@ const Home = () => {
   const [streamingContent, setStreamingContent] = useState('')
   const abortRef = useRef<(() => void) | null>(null)
   const scrollViewRef = useRef<HTMLDivElement>(null)
+
+  // 处理联系方式点击
+  const handleContactClick = useCallback((contact: ContactInfo) => {
+    if (contact.action === 'copy') {
+      // 复制到剪贴板
+      Taro.setClipboardData({
+        data: contact.value,
+        success: () => {
+          Taro.showToast({
+            title: `${contact.label}已复制`,
+            icon: 'success',
+            duration: 2000
+          })
+        }
+      })
+    } else if (contact.action === 'link') {
+      // 跳转链接
+      if (contact.type === 'github') {
+        // 小程序中打开网页
+        Taro.navigateTo({
+          url: `/pages/webview/index?url=${encodeURIComponent(contact.value)}`
+        }).catch(() => {
+          // 如果没有 webview 页面，则复制链接
+          Taro.setClipboardData({
+            data: contact.value,
+            success: () => {
+              Taro.showToast({
+                title: '链接已复制',
+                icon: 'success',
+                duration: 2000
+              })
+            }
+          })
+        })
+      }
+    }
+  }, [])
 
   // 滚动到底部
   const scrollToBottom = useCallback(() => {
@@ -139,10 +208,10 @@ const Home = () => {
       <div className="flex flex-col items-center px-6 py-12">
         {/* 头像 */}
         <Image
-          src="https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_16fd34f8-8bcc-4f4b-989f-842768b41d28.jpg"
+          src="https://miaoda-edit-image.cdn.bcebos.com/aqe1ulp0ary9/IMG-aqed6t777g1s.png"
           mode="aspectFill"
           className="w-32 h-32 rounded-full mb-6"
-        />
+          data-editor-config="%7B%22defaultSrc%22%3A%22https%3A%2F%2Fmiaoda-edit-image.cdn.bcebos.com%2Faqe1ulp0ary9%2FIMG-aqed6t777g1s.png%22%7D" />
         
         {/* 名字 */}
         <h1 className="text-4xl font-bold text-foreground mb-2">许卿</h1>
@@ -151,7 +220,7 @@ const Home = () => {
         <p className="text-2xl text-muted-foreground mb-12">深度学习研究者</p>
         
         {/* 个人信息卡片 */}
-        <div className="w-full border border-border rounded-sm bg-card px-6 py-6">
+        <div className="w-full border border-border rounded-sm bg-card px-6 py-6 mb-20">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row">
               <span className="text-xl text-muted-foreground w-32">身份</span>
@@ -169,6 +238,34 @@ const Home = () => {
               <span className="text-xl text-muted-foreground w-32">个人特点</span>
               <span className="text-xl text-foreground flex-1">脾气超级好</span>
             </div>
+          </div>
+        </div>
+
+        {/* 联系方式模块 */}
+        <div className="w-full">
+          <h2 className="text-3xl font-bold text-foreground mb-6">联系方式</h2>
+          <div className="flex flex-col gap-3">
+            {CONTACT_LIST.map((contact, index) => (
+              <div
+                key={index}
+                className="flex flex-row items-center justify-between border border-border rounded-sm bg-card px-6 py-4"
+              >
+                <div className="flex flex-row items-center gap-4 flex-1">
+                  <div className={`${contact.icon} text-3xl text-primary`} />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xl text-foreground font-medium">{contact.label}</span>
+                    <span className="text-lg text-muted-foreground">{contact.value}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleContactClick(contact)}
+                  className="px-4 py-2 border border-primary rounded-sm text-lg text-primary flex items-center justify-center leading-none transition-transform active:scale-96"
+                >
+                  {contact.action === 'copy' ? '复制' : '访问'}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -218,7 +315,6 @@ const Home = () => {
           )}
         </div>
       </div>
-
       {/* 输入框区域 - 固定在底部 */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-6 py-4">
         <div className="flex flex-row gap-3 items-center">
@@ -248,7 +344,7 @@ const Home = () => {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default Home
