@@ -42,6 +42,11 @@ export default defineConfig<'vite'>(async (merge) => {
     framework: 'react',
     compiler: {
       type: 'vite',
+      vite: {
+        build: {
+          assetsInlineLimit: 4096
+        }
+      },
       vitePlugins: [
         {
           // 通过 vite 插件加载 postcss,

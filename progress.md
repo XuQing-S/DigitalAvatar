@@ -45,6 +45,9 @@
   - **指导 EdgeOne Pages 部署与更新**：为用户提供了将 GitHub 仓库部署到腾讯云 EdgeOne Pages 的详细步骤，并解释了基于 Git Push 的自动触发部署（CI/CD）机制。
   - **修复 EdgeOne 部署文件过大报错**：由于我们在项目中添加了大量高清图片（专利证书等），导致 Taro/Vite 默认的 Base64 内联机制将这些大图片直接打包进了 JS 文件中，触发了 EdgeOne Pages 单文件最大 20MB 的限制。通过修改 `config/index.ts` 中的 `h5` 和 `compiler.vite.build` 配置，将 `limit` 和 `assetsInlineLimit` 设置为 0，强制所有图片作为独立资源文件输出，成功解决了构建报错。
   - **解答用户疑问**：向用户解释了当前数字分身聊天的实现原理（由真实 AI 驱动，通过 Supabase Edge Functions 调用大语言模型 API，并支持流式输出和 System Prompt 个性化设定）。
+  - **修复移动端部署后图片与图标丢失问题**：
+    - **头像丢失**：原头像使用了秒哒云存储（BCEBOS）的外部链接，该链接存在防盗链（Referer）限制，导致在 EdgeOne 域名下访问被拒绝（403 Forbidden）。已将头像下载到本地 `src/assets/images/avatar.png` 并改为本地引用。
+    - **图标丢失**：由于之前为了修复 20MB 文件限制，将 Vite 的 `assetsInlineLimit` 设为了 0，导致 Tailwind 生成的极小 SVG 图标（Data URI）也被提取成了外部文件，在部署环境中路径解析失败。已将 `assetsInlineLimit` 回调至合理的 `4096`（4KB），使得小图标以内联 Base64 形式打包，大图片（专利图）作为独立文件输出，完美兼顾了体积限制与图标显示。
 - **遇到错误**：
   - 运行 `pnpm install` 报错：`ENOTFOUND request to http://registry.npm.baidu-int.com/...`。
   - 运行 `pnpm run dev:h5` 报错：`Cannot find module '@tarojs/cli'` 和 `找不到插件依赖 "@tarojs/plugin-platform-h5"`。
@@ -54,6 +57,7 @@
   - 专利页面显示空白或没有专利信息。
   - 专利和软著页面的状态角标（“已授权”）文字未正常显示。
   - **EdgeOne 部署报错**：`Error: Files size limit exceeded. The maximum size for a single file is 20MB. ./js/index.xxx.js (42MB)`
+  - **移动端部署后图片/图标丢失**：部署到 EdgeOne 后，手机端访问时头像变灰，且所有 Tailwind 图标（如成果展示、联系方式图标）全部消失。
 - **修复方案**：
   - 针对内网源报错：删除了旧的 `pnpm-lock.yaml` 文件，让 pnpm 使用公共源重新生成依赖锁文件。
   - 针对找不到模块报错：这是因为本地项目的 `node_modules` 依赖尚未完整安装。已提醒用户必须先成功执行 `pnpm install`，再启动项目。
@@ -63,3 +67,4 @@
   - 针对专利页面无信息：由于图片路径包含中文字符和特殊符号，可能导致了打包工具（Vite/Taro）的热更新失败。已将图片统一复制到 `src/assets/images/` 目录下，重命名为 `patent1.png` 到 `patent5.png`，并更新了引用路径。
   - 针对状态角标文字不显示：将 `{software.status}` 和 `{patent.status}` 用 `<span>` 标签显式包裹，确保 React 能够正确渲染该文本节点。
   - 针对 EdgeOne 部署文件过大：修改 `config/index.ts`，在 `h5` 配置中添加 `imageUrlLoaderOption: { limit: 0 }` 等选项，并在 `compiler.vite.build` 中设置 `assetsInlineLimit: 0`，禁止图片转为 Base64 塞入 JS 文件，从而大幅减小单文件体积。
+  - 针对移动端部署后图片/图标丢失：将外部头像下载到本地 `src/assets/images/avatar.png` 避免防盗链拦截；修改 `config/index.ts`，将 `imageUrlLoaderOption.limit` 设为 `4096`，使得小于 4KB 的 SVG 图标被内联进 CSS，而大于 4KB 的大图正常输出为文件，解决了打包路径与体积限制的冲突。
