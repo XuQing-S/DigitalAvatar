@@ -1,21 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { sendChatStream } from 'miaoda-taro-utils/chatStream'
-import ChatBubble from '@/components/ChatBubble'
-
-interface Message {
-  role: 'user' | 'assistant' | 'system'
-  content: string
-}
-
-const SYSTEM_PROMPT = '你是许卿的数字分身。你是一名硕士研究生,目前主要在做深度学习和VibeCoding研究。你的兴趣包括深度学习、AI应用、古诗词。你的性格特点是脾气超级好。请以许卿的口吻回答问题,回答要简洁友好。'
-
-const PRESET_QUESTIONS = [
-  '你现在在做什么?',
-  '你有哪些作品?',
-  '怎么联系你?'
-]
 
 interface ContactInfo {
   type: 'wechat' | 'email' | 'github' | 'link'
@@ -50,12 +35,7 @@ const CONTACT_LIST: ContactInfo[] = [
 ]
 
 const Home = () => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inputValue, setInputValue] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [streamingContent, setStreamingContent] = useState('')
-  const abortRef = useRef<(() => void) | null>(null)
-  const scrollViewRef = useRef<HTMLDivElement>(null)
+  const [isContactExpanded, setIsContactExpanded] = useState(false)
 
   // 处理联系方式点击
   const handleContactClick = useCallback((contact: ContactInfo) => {
@@ -73,275 +53,112 @@ const Home = () => {
       })
     } else if (contact.action === 'link') {
       // 跳转链接
-      if (contact.type === 'github') {
-        // 小程序中打开网页
-        Taro.navigateTo({
-          url: `/pages/webview/index?url=${encodeURIComponent(contact.value)}`
-        }).catch(() => {
-          // 如果没有 webview 页面，则复制链接
-          Taro.setClipboardData({
-            data: contact.value,
-            success: () => {
-              Taro.showToast({
-                title: '链接已复制',
-                icon: 'success',
-                duration: 2000
-              })
-            }
-          })
+      if (Taro.getEnv() === Taro.ENV_TYPE.WEB) {
+        // H5 环境直接在新标签页打开
+        window.open(contact.value, '_blank')
+      } else {
+        // 小程序环境无法直接打开外部未配置业务域名的网页，降级为复制链接
+        Taro.setClipboardData({
+          data: contact.value,
+          success: () => {
+            Taro.showToast({
+              title: '链接已复制，请在浏览器打开',
+              icon: 'none',
+              duration: 2000
+            })
+          }
         })
       }
     }
   }, [])
 
-  // 滚动到底部
-  const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      if (scrollViewRef.current) {
-        scrollViewRef.current.scrollTop = scrollViewRef.current.scrollHeight
-      }
-    }, 100)
-  }, [])
-
-  // 发送消息
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || isLoading) return
-
-    const userMessage: Message = { role: 'user', content: content.trim() }
-    setMessages(prev => [...prev, userMessage])
-    setInputValue('')
-    setIsLoading(true)
-    setStreamingContent('')
-    scrollToBottom()
-
-    try {
-      const supabaseUrl = process.env.TARO_APP_SUPABASE_URL
-      let fullContent = ''
-
-      // 构建完整的 messages 数组
-      const allMessages: Message[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...messages,
-        userMessage
-      ]
-
-      const { abort } = sendChatStream({
-        endpoint: `${supabaseUrl}/functions/v1/chat-with-digital-twin`,
-        appId: '',
-        messages: allMessages,
-        onUpdate: (rawData: string) => {
-          try {
-            if (rawData !== '[DONE]') {
-              const data = JSON.parse(rawData)
-              const content = data.choices?.[0]?.delta?.content || ''
-              fullContent += content
-              setStreamingContent(fullContent)
-              scrollToBottom()
-            }
-          } catch (e) {
-            console.error('解析流数据失败:', e)
-          }
-        },
-        onComplete: () => {
-          setMessages(prev => [...prev, { role: 'assistant', content: fullContent }])
-          setStreamingContent('')
-          setIsLoading(false)
-          scrollToBottom()
-        },
-        onError: (error: Error) => {
-          console.error('AI回复出错:', error)
-          Taro.showToast({
-            title: '数字分身暂时走神了,请稍后再试',
-            icon: 'none',
-            duration: 2000
-          })
-          setIsLoading(false)
-          setStreamingContent('')
-        }
-      })
-
-      abortRef.current = abort
-    } catch (error) {
-      console.error('发送消息失败:', error)
-      Taro.showToast({
-        title: '数字分身暂时走神了,请稍后再试',
-        icon: 'none',
-        duration: 2000
-      })
-      setIsLoading(false)
-      setStreamingContent('')
-    }
-  }, [messages, isLoading, scrollToBottom])
-
-  // 点击预设问题
-  const handlePresetClick = useCallback((question: string) => {
-    sendMessage(question)
-  }, [sendMessage])
-
-  // 输入框变化
-  const handleInput = useCallback((e: any) => {
-    const ev = e as any
-    const value = ev.detail?.value ?? ev.target?.value ?? ''
-    // 限制最多200字
-    if (value.length <= 200) {
-      setInputValue(value)
-    }
-  }, [])
-
-  // 发送按钮点击
-  const handleSend = useCallback(() => {
-    sendMessage(inputValue)
-  }, [inputValue, sendMessage])
-
-  // 组件卸载时中止请求
-  useEffect(() => {
-    return () => {
-      if (abortRef.current) {
-        abortRef.current()
-      }
-    }
+  // 打开聊天页面
+  const handleOpenChat = useCallback(() => {
+    Taro.navigateTo({
+      url: '/pages/chat/index'
+    })
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* 个人信息区 */}
-      <div className="flex flex-col items-center px-6 py-12">
-        {/* 头像 */}
-        <Image
-          src="https://miaoda-edit-image.cdn.bcebos.com/aqe1ulp0ary9/IMG-aqed6t777g1s.png"
-          mode="aspectFill"
-          className="w-32 h-32 rounded-full mb-6"
-          data-editor-config="%7B%22defaultSrc%22%3A%22https%3A%2F%2Fmiaoda-edit-image.cdn.bcebos.com%2Faqe1ulp0ary9%2FIMG-aqed6t777g1s.png%22%7D" />
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans selection:bg-blue-500/30">
+      <div className="max-w-2xl mx-auto px-6 py-12 md:py-20">
         
-        {/* 名字 */}
-        <h1 className="text-4xl font-bold text-foreground mb-2">许卿</h1>
-        
-        {/* 一句话介绍 */}
-        <p className="text-2xl text-muted-foreground mb-12">深度学习研究者</p>
-        
-        {/* 个人信息卡片 */}
-        <div className="w-full border border-border rounded-sm bg-card px-6 py-6 mb-20">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-row">
-              <span className="text-xl text-muted-foreground w-32">身份</span>
-              <span className="text-xl text-foreground flex-1">硕士研究生</span>
-            </div>
-            <div className="flex flex-row">
-              <span className="text-xl text-muted-foreground w-32">目前在做</span>
-              <span className="text-xl text-foreground flex-1">深度学习、VibeCoding</span>
-            </div>
-            <div className="flex flex-row">
-              <span className="text-xl text-muted-foreground w-32">兴趣方向</span>
-              <span className="text-xl text-foreground flex-1">深度学习、AI应用、古诗词</span>
-            </div>
-            <div className="flex flex-row">
-              <span className="text-xl text-muted-foreground w-32">个人特点</span>
-              <span className="text-xl text-foreground flex-1">脾气超级好</span>
+        {/* 头部：头像与简介 - 左对齐排版更显专业 */}
+        <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8 mb-12">
+          <Image
+            src="https://miaoda-edit-image.cdn.bcebos.com/aqe1ulp0ary9/IMG-aqed6t777g1s.png"
+            mode="aspectFill"
+            className="w-24 h-24 md:w-28 md:h-28 rounded-full shadow-sm border border-slate-200 object-cover shrink-0"
+            data-editor-config="%7B%22defaultSrc%22%3A%22https%3A%2F%2Fmiaoda-edit-image.cdn.bcebos.com%2Faqe1ulp0ary9%2FIMG-aqed6t777g1s.png%22%7D" 
+          />
+          <div className="flex flex-col justify-center">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-3">
+              许卿
+            </h1>
+            <div className="flex items-center gap-2.5 text-slate-600">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <p className="text-base md:text-lg leading-relaxed">
+                一个正在学习 DeepLearning、VibeCoding 的研究生。
+              </p>
             </div>
           </div>
         </div>
-
-        {/* 联系方式模块 */}
-        <div className="w-full">
-          <h2 className="text-3xl font-bold text-foreground mb-6">联系方式</h2>
-          <div className="flex flex-col gap-3">
-            {CONTACT_LIST.map((contact, index) => (
-              <div
-                key={index}
-                className="flex flex-row items-center justify-between border border-border rounded-sm bg-card px-6 py-4"
-              >
-                <div className="flex flex-row items-center gap-4 flex-1">
-                  <div className={`${contact.icon} text-3xl text-primary`} />
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xl text-foreground font-medium">{contact.label}</span>
-                    <span className="text-lg text-muted-foreground">{contact.value}</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleContactClick(contact)}
-                  className="px-4 py-2 border border-primary rounded-sm text-lg text-primary flex items-center justify-center leading-none transition-transform active:scale-96"
-                >
-                  {contact.action === 'copy' ? '复制' : '访问'}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 聊天区 - 80px 留白分隔 */}
-      <div className="px-6 pb-32" style={{ marginTop: '80px' }}>
-        {/* 区域标题 */}
-        <h2 className="text-3xl font-bold text-foreground mb-6">和我的数字分身聊聊</h2>
         
-        {/* 预设问题 */}
-        {messages.length === 0 && (
-          <div className="flex flex-col gap-3 mb-6">
-            {PRESET_QUESTIONS.map((question, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => handlePresetClick(question)}
-                className="px-4 py-3 border border-primary rounded-lg text-xl text-primary flex items-center justify-center leading-none transition-transform active:scale-96"
-                disabled={isLoading}
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-        )}
-        
-        {/* 聊天记录 */}
-        <div ref={scrollViewRef} className="mb-6">
-          {messages.map((msg, index) => (
-            msg.role !== 'system' && (
-              <ChatBubble key={index} messageRole={msg.role} content={msg.content} />
-            )
-          ))}
-          
-          {/* 流式输出中的消息 */}
-          {isLoading && streamingContent && (
-            <ChatBubble messageRole="assistant" content={streamingContent} />
-          )}
-          
-          {/* 加载状态 */}
-          {isLoading && !streamingContent && (
-            <div className="flex justify-start mb-4">
-              <div className="px-4 py-3 bg-card border border-border rounded-lg text-xl text-foreground">
-                正在思考中_
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      {/* 输入框区域 - 固定在底部 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border px-6 py-4">
-        <div className="flex flex-row gap-3 items-center">
-          <div className="flex-1 border border-input rounded-lg px-4 py-3 bg-card overflow-hidden">
-            <input
-              type="text"
-              value={inputValue}
-              onInput={handleInput}
-              placeholder="输入你的问题..."
-              maxLength={200}
-              disabled={isLoading}
-              className="w-full text-xl text-foreground bg-transparent outline-none"
-            />
-          </div>
+        {/* 聊天按钮 - 沉稳的深色质感 */}
+        <div className="mb-12">
           <button
             type="button"
-            onClick={handleSend}
-            disabled={!inputValue.trim() || isLoading}
-            className={`px-6 py-3 rounded-lg text-xl flex items-center justify-center leading-none transition-transform ${
-              inputValue.trim() && !isLoading
-                ? 'bg-secondary text-secondary-foreground active:scale-96'
-                : 'bg-muted text-muted-foreground'
-            }`}
+            onClick={handleOpenChat}
+            className="w-full flex items-center justify-center gap-3 bg-slate-900 text-white px-6 py-4 rounded-2xl font-medium hover:bg-slate-800 active:scale-[0.98] transition-all shadow-md shadow-slate-900/10"
           >
-            <div className="i-mdi-send text-2xl" />
+            <div className="i-mdi-robot-outline text-2xl text-blue-400" />
+            <span className="text-lg tracking-wide">和我的数字分身聊聊</span>
           </button>
         </div>
+
+        {/* 联系方式模块 - 紧凑型折叠面板 */}
+        <div className="w-full">
+          <div 
+            className="flex justify-between items-center mb-2 cursor-pointer group py-2"
+            onClick={() => setIsContactExpanded(!isContactExpanded)}
+          >
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">联系方式</h2>
+            <div className={`text-xl text-slate-400 transition-transform duration-300 ${isContactExpanded ? 'rotate-180' : ''}`}>
+              <div className="i-mdi-chevron-down" />
+            </div>
+          </div>
+          
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isContactExpanded ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+              {CONTACT_LIST.map((contact, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200/60 shadow-sm hover:border-slate-300 transition-colors"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className={`${contact.icon} text-2xl text-slate-400 shrink-0`} />
+                    <div className="flex flex-col truncate">
+                      <span className="text-sm font-medium text-slate-900">{contact.label}</span>
+                      <span className="text-xs text-slate-500 truncate">{contact.value}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleContactClick(contact)}
+                    className="ml-3 shrink-0 p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    title={contact.action === 'copy' ? '复制' : '访问'}
+                  >
+                    <div className={contact.action === 'copy' ? 'i-mdi-content-copy' : 'i-mdi-open-in-new'} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
       </div>
     </div>
   );
