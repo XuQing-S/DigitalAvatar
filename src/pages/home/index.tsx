@@ -29,21 +29,21 @@ const CONTACT_LIST: ContactInfo[] = [
   {
     type: 'wechat',
     label: '微信',
-    value: 'xuqing_wechat',
+    value: 'syg17681200474',
     icon: 'i-mdi-wechat',
     action: 'copy'
   },
   {
     type: 'email',
     label: '邮箱',
-    value: 'xuqing@example.com',
+    value: 'sx2405111@nuaa.edu.cn',
     icon: 'i-mdi-email',
     action: 'copy'
   },
   {
     type: 'github',
     label: 'GitHub',
-    value: 'https://github.com/xuqing',
+    value: 'https://github.com/XuQing-S',
     icon: 'i-mdi-github',
     action: 'link'
   }
