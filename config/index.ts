@@ -99,6 +99,15 @@ export default defineConfig<'vite'>(async (merge) => {
     h5: {
       publicPath,
       staticDirectory: 'static',
+      imageUrlLoaderOption: {
+        limit: 0
+      },
+      mediaUrlLoaderOption: {
+        limit: 0
+      },
+      fontUrlLoaderOption: {
+        limit: 0
+      },
 
       sassLoaderOption: {
         additionalData: `@use "@/styles/overrides.scss";`

@@ -42,6 +42,7 @@
     - 为这两个模块添加了统一的白色大圆角卡片背景（`bg-white rounded-3xl p-6 md:p-8`）和微阴影。
     - 调整了模块标题的样式，使其与内容更加紧凑。
     - 优化了内部元素的背景色对比度（如将按钮背景调整为 `bg-slate-50`），使得整体层次更加清晰，功能范围一目了然。
+  - **指导 EdgeOne Pages 部署与更新**：为用户提供了将 GitHub 仓库部署到腾讯云 EdgeOne Pages 的详细步骤，并解释了基于 Git Push 的自动触发部署（CI/CD）机制。
 - **遇到错误**：
   - 运行 `pnpm install` 报错：`ENOTFOUND request to http://registry.npm.baidu-int.com/...`。
   - 运行 `pnpm run dev:h5` 报错：`Cannot find module '@tarojs/cli'` 和 `找不到插件依赖 "@tarojs/plugin-platform-h5"`。
