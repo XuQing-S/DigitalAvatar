@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import avatarImg from '../../assets/images/avatar.png'
 
 interface ContactInfo {
   type: 'wechat' | 'email' | 'github' | 'link'
@@ -86,10 +87,9 @@ const Home = () => {
         {/* 头部：头像与简介 - 左对齐排版更显专业 */}
         <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8 mb-12">
           <Image
-            src="https://miaoda-edit-image.cdn.bcebos.com/aqe1ulp0ary9/IMG-aqed6t777g1s.png"
+            src={avatarImg}
             mode="aspectFill"
             className="w-24 h-24 md:w-28 md:h-28 rounded-full shadow-sm border border-slate-200 object-cover shrink-0"
-            data-editor-config="%7B%22defaultSrc%22%3A%22https%3A%2F%2Fmiaoda-edit-image.cdn.bcebos.com%2Faqe1ulp0ary9%2FIMG-aqed6t777g1s.png%22%7D" 
           />
           <div className="flex flex-col justify-center">
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-3">

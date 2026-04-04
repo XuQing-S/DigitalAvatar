@@ -100,13 +100,13 @@ export default defineConfig<'vite'>(async (merge) => {
       publicPath,
       staticDirectory: 'static',
       imageUrlLoaderOption: {
-        limit: 0
+        limit: 4096
       },
       mediaUrlLoaderOption: {
-        limit: 0
+        limit: 4096
       },
       fontUrlLoaderOption: {
-        limit: 0
+        limit: 4096
       },
 
       sassLoaderOption: {
