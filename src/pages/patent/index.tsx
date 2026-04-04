@@ -1,0 +1,178 @@
+import { useCallback } from 'react'
+import { Image } from '@tarojs/components'
+import Taro from '@tarojs/taro'
+
+// 导入本地专利图片
+import patentImg1 from '../../assets/images/patent1.png'
+import patentImg2 from '../../assets/images/patent2.png'
+import patentImg3 from '../../assets/images/patent3.png'
+import patentImg4 from '../../assets/images/patent4.png'
+import patentImg5 from '../../assets/images/patent5.png'
+import patentImg6 from '../../assets/images/patent6.png'
+import patentImg7 from '../../assets/images/patent7.png'
+import patentImg8 from '../../assets/images/patent8.png'
+import patentImg9 from '../../assets/images/patent9.png'
+import patentImg10 from '../../assets/images/patent10.png'
+import patentImg11 from '../../assets/images/patent11.png'
+
+
+interface PatentInfo {
+  title: string
+  inventors: string
+  abstract: string
+  image: string
+  status?: string
+}
+
+const PATENT_LIST: PatentInfo[] = [
+  {
+    title: '一种航空航天智能制造大模型构建方法',
+    inventors: '汪俊，曹立群，宋雅各，吴巧云，易程',
+    abstract: '本发明公开一种航空航天智能制造大模型构建方法，包括：采集原始数据，进行预处理和数据关联，构建航空航天智能制造数据库；建立知识采集与结构化转换流水线、多维度关联的领域知识图谱、知识质量控制体系和动态更新机制，构建专业知识库；对齐跨模态制造数据，生成语料库；结合基座通用大模型预训练，注入专业术语语义及多模态关联能力，完成知识迁移；基于预训练后的航空航天智能制造大模型，构建航空航天制造认知智能体，形成复杂工程问题解决框架；通过两阶段渐进式多任务训练策略优化专业能力，结合在线学习与增量更新机制，实现生产环境的动态适配。本发明显著提升了航空航天智能制造的智能化水平。',
+    image: patentImg1,
+    status: '已授权'
+  },
+  {
+    title: '一种基于渐进式知识注入与检索增强生成的航空航天知识大模型构建方法',
+    inventors: '汪俊，曹立群，宋雅各，易程，魏明强，郑晓杰',
+    abstract: '本发明公开一种基于渐进式知识注入与检索增强生成的航空航天知识大模型构建方法，包括：收集多源知识数据并进行预处理，构建航空航天领域知识库；基于DeepSeek‑R1‑8B模型，采用三阶段渐进式混合课程学习框架进行持续预训练；通过指令数据与知识引导机制，进行监督微调，完成大模型的基本构建；构建检索增强生成模块，形成“检索‑过滤‑生成”的流程，通过深度融合实时检索与生成推理，提升模型的知识覆盖度与事实一致性；通过多维度的量化指标与动态测试机制，评估模型的性能表现，形成从数据构建到反馈优化的完整评估生态。本发明所提出的方法，通过多阶段协同优化实现了航空航天领域知识的深度整合与高效应用。',
+    image: patentImg2,
+    status: '已授权'
+  },
+  {
+    title: '一种基于时空信息融合的航空贮箱壁板焊接质量实时预测方法',
+    inventors: '汪俊，曹立群，宋雅各，濮宬涵，郭耀俊，钟珂珂',
+    abstract: '本发明涉及智能制造自动化检测技术领域，解决了传统方法依赖于单一的信息源，容易出现误判、漏检以及实时性不足的技术问题，尤其涉及一种基于时空信息融合的航空贮箱壁板焊接质量实时预测方法，包括：采集航空贮箱壁板焊接过程中的实时温度数据、应变数据以及焊缝纹理图像数据，综合生成航空贮箱壁板焊接过程中的时空变化数据；构建焊接质量预测模型；采用联合损失对焊接质量预测模型进行训练和权重更新；将时空变化数据输入至焊接质量预测模型中得到航空贮箱壁板焊缝的焊接质量评级。本发明能够实现对航空贮箱壁板的焊缝焊接质量的实时精确预测，提高检测的准确性和效率，同时保证高准确率的需求。',
+    image: patentImg3,
+    status: '已授权'
+  },
+  {
+    title: '一种多尺度特征提取的涡轮起动机外观缺陷检测方法',
+    inventors: '安理想，夏文艺，康正水，刘浩康，汪俊，李佳鼎，宋雅各，杨国栋',
+    abstract: '本发明涉及一种多尺度特征提取的涡轮起动机外观缺陷检测方法，包括：采集涡轮起动机外观缺陷数据，并定义缺陷种类得到外观缺陷特征图；将其输入数据增强模块，根据图像类型调整参数，输出多属性缺陷特征图；构建特征提取模块，提取多属性缺陷特征图中的缺陷数据特征，转换成多层特征映射，生成多尺度缺陷特征图；将多尺度缺陷特征图输入增强特征提取网络，获取并聚合高维多尺度缺陷特征，生成多尺度融合缺陷特征图；构建缺陷检测模块，检测多尺度缺陷的边界框预测和分类结果；采用相似性和并集交集损失，对模型进行训练和权重更新，得到最终缺陷检测模型。本发明实现了对涡轮起动机外观的多种不同尺度目标的缺陷的精确的定位与分类。',
+    image: patentImg4,
+    status: '已公开'
+  },
+  {
+    title: '一种多模态参数信号协同的火箭贮箱搅拌摩擦焊焊缝抗拉强度预测方法',
+    inventors: '汪俊，宋雅各，曹立群，单鹏飞，易程',
+    abstract: '本发明公开一种多模态参数信号协同的火箭贮箱搅拌摩擦焊焊缝抗拉强度预测方法，包括：采集火箭贮箱搅拌摩擦焊焊接过程中的静态工艺参数向量和过程信号数据，构建用于搅拌摩擦焊焊缝抗拉强度预测的多模态数据集；构建焊缝抗拉强度预测模型，以多模态数据集为输入，预测搅拌摩擦焊焊缝抗拉强度；设计损失函数对所述焊缝抗拉强度预测模型进行训练，通过反向传播更新焊缝抗拉强度预测模型中各模块的权重；将待测搅拌摩擦焊焊缝的静态工艺参数向量与过程信号数据输入训练好的焊缝抗拉强度预测模型，输出待测搅拌摩擦焊焊缝抗拉强度的预测结果。本发明实现了对火箭贮箱的焊缝抗拉强度的实时精确预测。',
+    image: patentImg5,
+    status: '已公开'
+  },
+  {
+    title: '一种基于多物理场感知混合神经网络的火箭贮箱搅拌摩擦焊内部缺陷预测方法',
+    inventors: '汪俊，宋雅各，曹立群，严宇，易程',
+    abstract: '本发明公开一种基于多物理场感知混合神经网络的火箭贮箱搅拌摩擦焊内部缺陷预测方法，包括：同步采集焊接过程中的多模态物理信号，并确保各信号在时、空间上的严格对齐，构建多物理场数据集；设计包含分层跨门控编码、动态卷积核融合、频域滤波增强、注意力门控解码和像素分类头的混合神经网络，多物理场数据集为输入，预测缺陷概率图；最小化一个针对缺陷分割任务优化的复合损失函数，来迭代搜寻混合神经网络架构的最优参数；将训练好的最优模型部署到实际生产中，对实时采集的多物理场数据流执行前向推理，最终连续输出直观的、标明了缺陷类型与位置的内部缺陷图。本发明实现了对火箭贮箱搅拌摩擦焊焊缝内部缺陷的实时精确预测。',
+    image: patentImg6,
+    status: '已公开'
+  },
+  {
+    title: '基于瞬态感知与精度巡检的火箭舱壁自适应铣削控制方法',
+    inventors: '汪俊，周杰，曹立群，易程，宋雅各，吴翔',
+    abstract: '本发明涉及智能制造与数控加工技术领域，解决了现有方法因瞬态分析与累积巡检无法兼顾而导致的数据失配与最优控制要求之间核心矛盾的技术问题，尤其涉及一种基于瞬态感知与精度巡检的火箭舱壁自适应铣削控制方法，通过引入一种2D高频瞬态分析与3D低频几何巡检相结合的并发分析策略，利用其以融合的混合状态向量为决策依据，对瞬态缺陷和累积缺陷执行协同控制的特点，捕捉强化学习决策代理在面对复杂工况时解算出的最优工艺参数调整量，以准确地对火箭舱壁的颤振、热损伤和宏观变形状态进行自适应闭环控制。本发明能够为下游的智能制造系统提供高鲁棒性的闭环控制支持，帮助实时抑制颤振与热损伤，并周期性补偿宏观变形与刀具磨损。',
+    image: patentImg7,
+    status: '已公开'
+  },
+  {
+    title: '一种基于航天标准分级文本与掩模引导混合扩散的火箭舱壁跨模态缺陷数据增强方法',
+    inventors: '汪俊，周杰，曹立群，宋雅各，单鹏飞，易程',
+    abstract: '本发明公开一种基于航天标准分级文本与掩模引导混合扩散的火箭舱壁跨模态缺陷数据增强方法，包括：采集小样本焊缝真实图像，将工程标准文本解析为分级文本提示；将分级文本提示注入潜在扩散模型，学习缺陷外观与分级文本提示的精确映射；依据缺陷量/质化验收指标，在焊缝物理先验区域内生成种子掩模；在种子掩模指定的位置内，依据分级文本提示，潜在扩散模型将学习到的缺陷编辑到正常焊缝真实图像上，得到含缺陷的合成图像；合成图像与小样本缺陷真实图像进行数据混合，构建增强型焊缝缺陷数据集；基于增强型焊缝缺陷数据集执行对火箭舱壁的缺陷检测与量化判级。本发明实现了对现有缺陷数据的高保真、高标准、多样化增强。',
+    image: patentImg8,
+    status: '已公开'
+  },
+  {
+    title: '一种基于视觉制导与几何去歧义的火箭壁板焊缝缺陷高精度检测方法',
+    inventors: '汪俊，周杰，曹立群，易程，宋雅各',
+    abstract: '本发明公开一种基于视觉制导与几何去歧义的火箭壁板焊缝缺陷高精度检测方法，包括：采集火箭壁板焊缝的2D图像和3D点云；构建2D全局侦察网络，采用复合损失函数进行训练；部署训练好的网络对2D图像进行推理，通过连通域分析和噪声过滤，生成制导信号；基于制导信号和3D点云量化分析焊缝整体的宏观几何指标和可疑缺陷区域的微观几何特征描述子；对缺陷进行宏观‑微观混合裁决，输出焊缝缺陷裁决列表；封装裁决列表得到结构化数字质量档案报告，以JSON格式输出至下游质量追溯系统。本发明在处理光学伪影和几何噪声干扰的同时，保持了高效率和高鲁棒，能通过结构化报告捕捉关键缺陷，实现准确地监控焊缝质量。',
+    image: patentImg9,
+    status: '已公开'
+  },
+  {
+    title: '一种基于焊缝线感知与可逆域映射的X光焊缝缺陷智能检测方法',
+    inventors: '汪俊，陆乐，曹立群，宋雅各，吴巧云',
+    abstract: '本发明涉及一种基于焊缝线感知与可逆域映射的X光焊缝缺陷智能检测方法，包括：通过采集焊缝区域的灰度X光图像，并对焊缝中心线轨迹与缺陷掩膜进行联合标注，构建标准化训练数据集；设计焊缝线感知混合神经网络架构；利用检测任务损失与中心线一致性约束组成的联合损失函数对网络进行端到端训练，实现缺陷类别判别与空间定位的协同优化；将训练完成的模型部署在焊接质量自动检测系统中，对实时采集的X光图像进行前向推理，并结合焊缝方向聚类的后处理策略，连续输出具有精确类别、位置与形态信息的缺陷检测结果。本发明实现了弯曲焊缝条件下细长型、弱纹理焊缝缺陷的稳定、准确识别，显著提高了焊缝无损检测的自动化与可靠性。',
+    image: patentImg10,
+    status: '已公开'
+  },
+  {
+    title: '一种面向火箭壁板的焊接工艺参数多智能体自适应优化方法',
+    inventors: '汪俊，陆乐，曹立群，易程，宋雅各',
+    abstract: '本发明涉及一种面向火箭壁板的焊接工艺参数多智能体自适应优化方法，包括构建焊接仿真环境，划分多功能解耦智能体；基于工艺知识库生成初始策略，控制智能体与环境交互，收集数据存入经验回放池；通过MADDPG模型训练网络参数，结合贝叶斯优化超参数；评估协同焊接质量，迭代直至收敛输出模型。该方法解决了在火箭壁板等航空航天大型复杂构件焊接中，现有工艺依赖人工经验、缺乏实时自适应调节能力，单智能体模型无法应对多单元协同优化、易陷入局部最优且收敛缓慢的问题，实现焊接参数自适应调整与质量全局最优控制，显著提升复杂构件焊接稳定性与一致性，避免局部最优，降低实验成本，适用于航空航天大型结构件焊接工艺优化。',
+    image: patentImg11,
+    status: '已公开'
+  }
+]
+
+const Patent = () => {
+  const handleBack = useCallback(() => {
+    Taro.navigateBack()
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+      {/* 顶部导航栏 */}
+      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center shadow-sm">
+        <button 
+          onClick={handleBack}
+          className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 active:scale-95 transition-all text-slate-600"
+        >
+          <div className="i-mdi-arrow-left text-2xl" />
+        </button>
+        <div className="flex-1 text-center pr-10">
+          <h1 className="text-lg font-bold text-slate-800 tracking-wide">专利</h1>
+        </div>
+      </div>
+
+      {/* 内容区：专利列表 */}
+      <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full flex flex-col gap-5">
+        {PATENT_LIST.map((patent, index) => (
+          <div 
+            key={index} 
+            className="relative flex flex-col md:flex-row bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 group"
+          >
+            {/* 状态角标 */}
+            {patent.status && (
+              <div className={`absolute top-0 right-0 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl rounded-tr-2xl z-10 shadow-sm flex items-center gap-1 ${
+                patent.status === '已授权' 
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+                  : 'bg-gradient-to-r from-blue-500 to-cyan-500'
+              }`}>
+                <div className={patent.status === '已授权' ? 'i-mdi-check-decagram text-sm' : 'i-mdi-eye-outline text-sm'} />
+                <span>{patent.status}</span>
+              </div>
+            )}
+            
+            {/* 左侧：专利配图 */}
+            <div className="w-full md:w-56 shrink-0 bg-slate-50/50 border-b md:border-b-0 md:border-r border-slate-100 p-5 flex items-center justify-center overflow-hidden">
+              <Image 
+                src={patent.image} 
+                mode="widthFix" 
+                className="w-full h-auto rounded-sm border border-slate-200 shadow-sm group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            
+            {/* 右侧：专利信息 */}
+            <div className="flex-1 p-5 md:p-6 flex flex-col gap-3">
+              <h2 className="text-lg md:text-xl font-bold text-slate-800 group-hover:text-amber-600 transition-colors leading-snug">
+                {patent.title}
+              </h2>
+              
+              <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                <div className="i-mdi-account-group-outline text-lg text-amber-500/70" />
+                <span>发明人：{patent.inventors}</span>
+              </div>
+              
+              <div className="mt-1 text-sm text-slate-600 leading-relaxed text-justify line-clamp-[8]">
+                <span className="font-bold text-slate-700 mr-1">摘要：</span>
+                {patent.abstract}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default Patent

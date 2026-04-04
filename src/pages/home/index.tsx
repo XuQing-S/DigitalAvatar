@@ -101,14 +101,41 @@ const Home = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <p className="text-base md:text-lg leading-relaxed">
-                一个正在学习 DeepLearning、VibeCoding 的研究生。
+                一个正在学习 DeepLearning、VibeCoding 的研究生
               </p>
             </div>
           </div>
         </div>
         
+        {/* 成果展示模块 */}
+        <div className="w-full bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6 md:p-8 mb-10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="i-mdi-lightning-bolt text-2xl text-blue-500" />
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">成果展示</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { title: '论文', icon: 'i-mdi-file-document-outline', path: '/pages/paper/index', color: 'text-indigo-500', bg: 'bg-indigo-50' },
+              { title: '专利', icon: 'i-mdi-certificate-outline', path: '/pages/patent/index', color: 'text-amber-500', bg: 'bg-amber-50' },
+              { title: '软著', icon: 'i-mdi-copyright', path: '/pages/software/index', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+              { title: '项目', icon: 'i-mdi-application-brackets-outline', path: '/pages/project/index', color: 'text-blue-500', bg: 'bg-blue-50' },
+            ].map((item, index) => (
+              <button
+                key={index}
+                onClick={() => Taro.navigateTo({ url: item.path })}
+                className="flex flex-col items-center justify-center p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 active:scale-95 transition-all duration-300 group"
+              >
+                <div className={`w-12 h-12 rounded-full ${item.bg} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                  <div className={`${item.icon} text-2xl ${item.color}`} />
+                </div>
+                <span className="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">{item.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* 聊天按钮 - 沉稳的深色质感 */}
-        <div className="mb-12">
+        <div className="mb-10">
           <button
             type="button"
             onClick={handleOpenChat}
@@ -120,23 +147,26 @@ const Home = () => {
         </div>
 
         {/* 联系方式模块 - 紧凑型折叠面板 */}
-        <div className="w-full">
+        <div className="w-full bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6 md:p-8">
           <div 
-            className="flex justify-between items-center mb-2 cursor-pointer group py-2"
+            className="flex justify-between items-center cursor-pointer group"
             onClick={() => setIsContactExpanded(!isContactExpanded)}
           >
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">联系方式</h2>
-            <div className={`text-xl text-slate-400 transition-transform duration-300 ${isContactExpanded ? 'rotate-180' : ''}`}>
+            <div className="flex items-center gap-3">
+              <div className="i-mdi-link-variant text-2xl text-slate-400" />
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">联系方式</h2>
+            </div>
+            <div className={`text-2xl text-slate-400 transition-transform duration-300 ${isContactExpanded ? 'rotate-180' : ''}`}>
               <div className="i-mdi-chevron-down" />
             </div>
           </div>
           
-          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isContactExpanded ? 'max-h-[500px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-4">
+          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isContactExpanded ? 'max-h-[500px] opacity-100 mt-6' : 'max-h-0 opacity-0'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
               {CONTACT_LIST.map((contact, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200/60 shadow-sm hover:border-slate-300 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-slate-300 transition-colors"
                 >
                   <div className="flex items-center gap-3 overflow-hidden">
                     <div className={`${contact.icon} text-2xl text-slate-400 shrink-0`} />
@@ -147,11 +177,14 @@ const Home = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleContactClick(contact)}
-                    className="ml-3 shrink-0 p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleContactClick(contact);
+                    }}
+                    className="ml-3 shrink-0 p-3 rounded-xl bg-white text-slate-600 hover:bg-blue-50 hover:text-blue-600 border border-slate-200/60 transition-colors flex items-center justify-center shadow-sm"
                     title={contact.action === 'copy' ? '复制' : '访问'}
                   >
-                    <div className={contact.action === 'copy' ? 'i-mdi-content-copy' : 'i-mdi-open-in-new'} />
+                    <div className={`text-xl ${contact.action === 'copy' ? 'i-mdi-content-copy' : 'i-mdi-open-in-new'}`} />
                   </button>
                 </div>
               ))}
