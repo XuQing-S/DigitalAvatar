@@ -4,26 +4,27 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    /* 学术理性风格色彩系统 */
+    --background: 210 17% 98%;  /* #F8F9FA 纸张白 */
+    --foreground: 210 100% 15%;  /* #0A2540 学术深蓝 */
+    --card: 0 0% 100%;  /* 纯白卡片 */
+    --card-foreground: 210 100% 15%;  /* #0A2540 学术深蓝 */
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --popover-foreground: 210 100% 15%;
+    --primary: 210 100% 15%;  /* #0A2540 学术深蓝 - 主色 */
+    --primary-foreground: 0 0% 100%;  /* 白色文字 */
+    --secondary: 217 91% 60%;  /* #1D4ED8 钴蓝 - 强调色 */
+    --secondary-foreground: 0 0% 100%;  /* 白色文字 */
+    --muted: 210 17% 95%;  /* 浅灰背景 */
+    --muted-foreground: 210 100% 15%;  /* 深蓝文字 */
+    --accent: 217 91% 60%;  /* #1D4ED8 钴蓝 */
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 72.22% 50.59%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5% 64.9%;
-    --radius: 0.5rem;
+    --border: 214 32% 91%;  /* #E2E8F0 边框色 */
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.125rem;  /* 2px 极小圆角 */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
