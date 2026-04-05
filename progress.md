@@ -56,6 +56,14 @@
   - **更新数字分身 System Prompt**：将 `docs/Instructions.md` 中的完整说明书内容注入到聊天页面（`src/pages/chat/index.tsx`）的 `SYSTEM_PROMPT` 中，全面升级了 AI 分身的人设、任务边界和回答风格。
   - **抽离数字分身配置**：为了方便后续维护，新建了 `src/config/prompt.ts` 文件，将冗长的 `SYSTEM_PROMPT` 字符串从 UI 组件中抽离出来单独管理。聊天页面现在通过 `import { SYSTEM_PROMPT } from '@/config/prompt'` 引入配置，实现了逻辑与配置的解耦。
   - **修复子页面返回按钮失效问题**：之前在聊天、论文、专利、软著等子页面中，返回按钮仅使用了 `Taro.navigateBack()`。当用户通过直接输入 URL 或刷新页面进入子页面时，由于路由历史栈为空，导致 `navigateBack` 失效。现已增加判断逻辑：通过 `Taro.getCurrentPages().length` 检查历史栈，如果有上一页则正常返回，如果历史栈为空则使用 `Taro.redirectTo` 强制跳转回首页。
+  - **完善项目展示页面**：根据 `tasks.md` 中的内容，重构了 `pages/project/index.tsx`。
+    - 引入了 `project1.png` 和 `project2.png` 作为项目配图。
+    - 沿用左图右文的卡片布局，右侧展示项目标题、项目类别（带高亮标签）、起止时间、担任身份和详细摘要。
+    - 采用了与首页“项目”图标一致的亮蓝色（Blue）作为主题色，保持了各成果模块的色彩区分度。
+    - 优化了右侧信息的排版：将起止时间、分隔符和担任身份并排显示在同一行（在小屏幕下自动折行），使信息结构更加紧凑；并为项目添加了右上角的“状态角标”（如“在研”、“已结项”），丰富了展示维度。
+  - **优化项目展示页面排版与角标**：根据用户提供的设计图，进一步优化了 `pages/project/index.tsx` 的布局。
+    - 将“项目类别”标签调整到时间和身份信息的上方，确保层级结构合理，长文本下依然排版美观。
+    - 修改了“已结项”状态的角标颜色，从绿色更换为更具科技感的蓝色渐变（`bg-gradient-to-r from-blue-500 to-cyan-500`），以符合用户期望的视觉传达效果。
 - **遇到错误**：
   - 运行 `pnpm install` 报错：`ENOTFOUND request to http://registry.npm.baidu-int.com/...`。
   - 运行 `pnpm run dev:h5` 报错：`Cannot find module '@tarojs/cli'` 和 `找不到插件依赖 "@tarojs/plugin-platform-h5"`。
@@ -68,6 +76,8 @@
   - **移动端部署后图片/图标丢失**：部署到 EdgeOne 后，手机端访问时头像变灰，且所有 Tailwind 图标（如成果展示、联系方式图标）全部消失。
   - **EdgeOne 部署再次报错**：`Error: Files size limit exceeded. The maximum size for a single file is 25MiB. ./js/index.75b63876.js (42MiB)`
   - **子页面返回按钮失效**：当用户在浏览器中直接刷新聊天页面或成果页面时，点击左上角的返回按钮没有任何反应。
+  - **项目展示页面排版瑕疵**：起止时间与担任身份分行显示占据过多垂直空间，且未展示项目当前的“已结项”/“在研”状态。
+  - **项目展示排版微调需求**：标签、时间和身份信息需要对调位置；“已结项”状态角标的底色需要调整为蓝色。
 - **修复方案**：
   - 针对内网源报错：删除了旧的 `pnpm-lock.yaml` 文件，让 pnpm 使用公共源重新生成依赖锁文件。
   - 针对找不到模块报错：这是因为本地项目的 `node_modules` 依赖尚未完整安装。已提醒用户必须先成功执行 `pnpm install`，再启动项目。
@@ -80,3 +90,5 @@
   - 针对移动端部署后图片/图标丢失：将外部头像下载到本地 `src/assets/images/avatar.png` 避免防盗链拦截；修改 `config/index.ts`，将 `imageUrlLoaderOption.limit` 设为 `4096`，使得小于 4KB 的 SVG 图标被内联进 CSS，而大于 4KB 的大图正常输出为文件，解决了打包路径与体积限制的冲突。
   - 针对 EdgeOne 再次报错：在 `config/index.ts` 中配置 Vite 的 `manualChunks`，将每一张大图片（专利、软著等）强制拆分为独立的 JS Chunk 文件，避免打包成单一的 42MB 巨型文件，成功绕过 EdgeOne 的 25MB 限制。
   - 针对子页面返回按钮失效：修改了所有子页面（聊天、论文、专利、软著、项目）的 `handleBack` 方法，增加 `Taro.getCurrentPages().length > 1` 的判断。如果历史栈有上一页则调用 `navigateBack`，如果为空（如刷新页面后）则调用 `redirectTo` 强制跳回 `/pages/home/index`。
+  - 针对项目页面排版瑕疵：重构了 `pages/project/index.tsx` 中的详情展示区域，将时间和身份通过 Flexbox 进行横向排列；并在数据模型中新增了 `status` 字段，配合绝对定位在卡片右上角渲染出了状态角标。
+  - 针对排版微调：在 `pages/project/index.tsx` 中调整了 Flex 元素的上下顺序，使得标签始终处于上方；并将 `已结项` 的样式类修改为 `from-blue-500 to-cyan-500`，实现了蓝色的渐变底色。
