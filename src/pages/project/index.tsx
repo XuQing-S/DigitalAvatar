@@ -3,7 +3,14 @@ import Taro from '@tarojs/taro'
 
 const Project = () => {
   const handleBack = useCallback(() => {
-    Taro.navigateBack()
+    const pages = Taro.getCurrentPages()
+    if (pages.length > 1) {
+      Taro.navigateBack()
+    } else {
+      Taro.redirectTo({
+        url: '/pages/home/index'
+      })
+    }
   }, [])
 
   return (

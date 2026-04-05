@@ -17,7 +17,7 @@ interface PaperInfo {
 const PAPER_LIST: PaperInfo[] = [
   {
     title: 'Graph-Enhanced Spatial-Spectral U-Net for Hyperspectral Image Classification',
-    journal: 'IEEE CW 2025',
+    journal: 'IEEE International Conference on Cyberworlds (CW) 2025',
     authors: 'Yage Song; Aoyuan Shi; Xueying Liu; Jie Zhou',
     abstract: 'Hyperspectral image (HSI) classification demands the sophisticated modeling of both intricate spatial contexts and long-range spectral dependencies. Prevailing methods, however, struggle with a fundamental trade-off: Convolutional Neural Networks (CNNs) exhibit spectral myopia due to their local receptive fields; Graph Neural Networks (GNNs) applied spatially can disrupt image integrity and incur prohibitive costs; and Transformers, while adept at capturing global dependencies, often struggle with quadratic complexity and data-hungry nature, limiting their scalability for HSI tasks. To resolve this, we propose S2 G-UNet, a unified framework architected for synergistic spatial-spectral feature learning. S2 G-UNet introduces three key innovations: (1) a Hierarchical Hybrid Feature Encoder (HHFE) that captures rich, multi-scale spatial features; (2) a Spectral Graph Refinement Module (SGRM), positioned at the network bottleneck, which uniquely models spectral bands as graph nodes to explicitly capture global inter-band correlations via graph attention; and (3) a Feature-Guided Interaction Module (FGIM) that ensures robust bidirectional semantic alignment between encoder and decoder pathways. Extensive experiments on three benchmark datasets demonstrate that S2G-UNet substantially outperforms contemporary methods, validating the efficacy of its synergistic design.',
     image: paperImg1,
@@ -27,7 +27,14 @@ const PAPER_LIST: PaperInfo[] = [
 
 const Paper = () => {
   const handleBack = useCallback(() => {
-    Taro.navigateBack()
+    const pages = Taro.getCurrentPages()
+    if (pages.length > 1) {
+      Taro.navigateBack()
+    } else {
+      Taro.redirectTo({
+        url: '/pages/home/index'
+      })
+    }
   }, [])
 
   const handleOpenLink = useCallback((link: string) => {

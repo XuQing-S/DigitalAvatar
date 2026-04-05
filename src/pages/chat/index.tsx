@@ -2,13 +2,12 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { sendChatStream } from 'miaoda-taro-utils/chatStream'
 import ChatBubble from '@/components/ChatBubble'
+import { SYSTEM_PROMPT } from '@/config/prompt'
 
 interface Message {
   role: 'user' | 'assistant' | 'system'
   content: string
 }
-
-const SYSTEM_PROMPT = '你是许卿的数字分身。你是一名硕士研究生,目前主要在做深度学习和VibeCoding研究。你的兴趣包括深度学习、AI应用、古诗词。你的性格特点是脾气超级好。请以许卿的口吻回答问题,回答要简洁友好。'
 
 const PRESET_QUESTIONS = [
   '你现在在做什么?',
@@ -125,7 +124,14 @@ const Chat = () => {
 
   // 返回主页
   const handleBack = useCallback(() => {
-    Taro.navigateBack()
+    const pages = Taro.getCurrentPages()
+    if (pages.length > 1) {
+      Taro.navigateBack()
+    } else {
+      Taro.redirectTo({
+        url: '/pages/home/index'
+      })
+    }
   }, [])
 
   // 组件卸载时中止请求

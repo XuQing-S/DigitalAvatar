@@ -48,6 +48,14 @@
   - **修复移动端部署后图片与图标丢失问题**：
     - **头像丢失**：原头像使用了秒哒云存储（BCEBOS）的外部链接，该链接存在防盗链（Referer）限制，导致在 EdgeOne 域名下访问被拒绝（403 Forbidden）。已将头像下载到本地 `src/assets/images/avatar.png` 并改为本地引用。
     - **图标丢失**：由于之前为了修复 20MB 文件限制，将 Vite 的 `assetsInlineLimit` 设为了 0，导致 Tailwind 生成的极小 SVG 图标（Data URI）也被提取成了外部文件，在部署环境中路径解析失败。已将 `assetsInlineLimit` 回调至合理的 `4096`（4KB），使得小图标以内联 Base64 形式打包，大图片（专利图）作为独立文件输出，完美兼顾了体积限制与图标显示。
+  - **终极修复 EdgeOne 20MB 限制与图标冲突**：
+    - 在将 `assetsInlineLimit` 调回 `4096` 后，虽然图标恢复了，但由于 Taro/Vite 的内部机制，大图片转成的 Base64 依然会被打包进同一个巨大的 JS Chunk 中，导致 EdgeOne 再次报 25MB 限制错误。
+    - **解决方案**：在 `config/index.ts` 中引入了 Vite 的 `rollupOptions.output.manualChunks` 高级配置。通过正则匹配，将 `node_modules` 提取为 `vendor`，并将 `src/assets/images/` 下的每一张大图片（如 `patent1.png`, `software1.png`）**单独拆分成独立的 JS Chunk 文件**。
+    - **结果**：成功将原本 40MB+ 的单体 JS 文件拆分成了十几个 2MB~6MB 的小文件。既保留了小图标的 Base64 内联显示，又完美绕过了 EdgeOne 的单文件体积限制，实现了顺畅部署。
+  - **重写项目 README 文档**：根据目前项目的功能和结构，彻底重写了 `README.md`，加入了详细的功能介绍、技术栈说明、本地运行指南、EdgeOne 部署说明和目录结构，使其更加规范和易读。
+  - **更新数字分身 System Prompt**：将 `docs/Instructions.md` 中的完整说明书内容注入到聊天页面（`src/pages/chat/index.tsx`）的 `SYSTEM_PROMPT` 中，全面升级了 AI 分身的人设、任务边界和回答风格。
+  - **抽离数字分身配置**：为了方便后续维护，新建了 `src/config/prompt.ts` 文件，将冗长的 `SYSTEM_PROMPT` 字符串从 UI 组件中抽离出来单独管理。聊天页面现在通过 `import { SYSTEM_PROMPT } from '@/config/prompt'` 引入配置，实现了逻辑与配置的解耦。
+  - **修复子页面返回按钮失效问题**：之前在聊天、论文、专利、软著等子页面中，返回按钮仅使用了 `Taro.navigateBack()`。当用户通过直接输入 URL 或刷新页面进入子页面时，由于路由历史栈为空，导致 `navigateBack` 失效。现已增加判断逻辑：通过 `Taro.getCurrentPages().length` 检查历史栈，如果有上一页则正常返回，如果历史栈为空则使用 `Taro.redirectTo` 强制跳转回首页。
 - **遇到错误**：
   - 运行 `pnpm install` 报错：`ENOTFOUND request to http://registry.npm.baidu-int.com/...`。
   - 运行 `pnpm run dev:h5` 报错：`Cannot find module '@tarojs/cli'` 和 `找不到插件依赖 "@tarojs/plugin-platform-h5"`。
@@ -58,6 +66,8 @@
   - 专利和软著页面的状态角标（“已授权”）文字未正常显示。
   - **EdgeOne 部署报错**：`Error: Files size limit exceeded. The maximum size for a single file is 20MB. ./js/index.xxx.js (42MB)`
   - **移动端部署后图片/图标丢失**：部署到 EdgeOne 后，手机端访问时头像变灰，且所有 Tailwind 图标（如成果展示、联系方式图标）全部消失。
+  - **EdgeOne 部署再次报错**：`Error: Files size limit exceeded. The maximum size for a single file is 25MiB. ./js/index.75b63876.js (42MiB)`
+  - **子页面返回按钮失效**：当用户在浏览器中直接刷新聊天页面或成果页面时，点击左上角的返回按钮没有任何反应。
 - **修复方案**：
   - 针对内网源报错：删除了旧的 `pnpm-lock.yaml` 文件，让 pnpm 使用公共源重新生成依赖锁文件。
   - 针对找不到模块报错：这是因为本地项目的 `node_modules` 依赖尚未完整安装。已提醒用户必须先成功执行 `pnpm install`，再启动项目。
@@ -68,3 +78,5 @@
   - 针对状态角标文字不显示：将 `{software.status}` 和 `{patent.status}` 用 `<span>` 标签显式包裹，确保 React 能够正确渲染该文本节点。
   - 针对 EdgeOne 部署文件过大：修改 `config/index.ts`，在 `h5` 配置中添加 `imageUrlLoaderOption: { limit: 0 }` 等选项，并在 `compiler.vite.build` 中设置 `assetsInlineLimit: 0`，禁止图片转为 Base64 塞入 JS 文件，从而大幅减小单文件体积。
   - 针对移动端部署后图片/图标丢失：将外部头像下载到本地 `src/assets/images/avatar.png` 避免防盗链拦截；修改 `config/index.ts`，将 `imageUrlLoaderOption.limit` 设为 `4096`，使得小于 4KB 的 SVG 图标被内联进 CSS，而大于 4KB 的大图正常输出为文件，解决了打包路径与体积限制的冲突。
+  - 针对 EdgeOne 再次报错：在 `config/index.ts` 中配置 Vite 的 `manualChunks`，将每一张大图片（专利、软著等）强制拆分为独立的 JS Chunk 文件，避免打包成单一的 42MB 巨型文件，成功绕过 EdgeOne 的 25MB 限制。
+  - 针对子页面返回按钮失效：修改了所有子页面（聊天、论文、专利、软著、项目）的 `handleBack` 方法，增加 `Taro.getCurrentPages().length > 1` 的判断。如果历史栈有上一页则调用 `navigateBack`，如果为空（如刷新页面后）则调用 `redirectTo` 强制跳回 `/pages/home/index`。
