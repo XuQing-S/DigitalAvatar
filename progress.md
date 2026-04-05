@@ -64,6 +64,7 @@
   - **优化项目展示页面排版与角标**：根据用户提供的设计图，进一步优化了 `pages/project/index.tsx` 的布局。
     - 将“项目类别”标签调整到时间和身份信息的上方，确保层级结构合理，长文本下依然排版美观。
     - 修改了“已结项”状态的角标颜色，从绿色更换为更具科技感的蓝色渐变（`bg-gradient-to-r from-blue-500 to-cyan-500`），以符合用户期望的视觉传达效果。
+  - **修复 AI 聊天服务鉴权失败问题**：之前聊天界面发送消息后无回复，原因是前端在调用 Supabase 云函数（`sendChatStream`）时，没有传入必须的 `appId`，导致云函数内部因为无法校验应用身份而拒绝响应。现已修改 `src/pages/chat/index.tsx`，通过读取环境变量 `process.env.TARO_APP_APP_ID` 获取正确的 AppID 并传递给请求，恢复了数字分身的聊天能力。
 - **遇到错误**：
   - 运行 `pnpm install` 报错：`ENOTFOUND request to http://registry.npm.baidu-int.com/...`。
   - 运行 `pnpm run dev:h5` 报错：`Cannot find module '@tarojs/cli'` 和 `找不到插件依赖 "@tarojs/plugin-platform-h5"`。
@@ -78,6 +79,7 @@
   - **子页面返回按钮失效**：当用户在浏览器中直接刷新聊天页面或成果页面时，点击左上角的返回按钮没有任何反应。
   - **项目展示页面排版瑕疵**：起止时间与担任身份分行显示占据过多垂直空间，且未展示项目当前的“已结项”/“在研”状态。
   - **项目展示排版微调需求**：标签、时间和身份信息需要对调位置；“已结项”状态角标的底色需要调整为蓝色。
+  - **聊天请求未授权报错**：用户反馈聊天无法回复。控制台或网络请求面板显示 API 调用失败（通常为 401 Unauthorized 或 400 Bad Request）。
 - **修复方案**：
   - 针对内网源报错：删除了旧的 `pnpm-lock.yaml` 文件，让 pnpm 使用公共源重新生成依赖锁文件。
   - 针对找不到模块报错：这是因为本地项目的 `node_modules` 依赖尚未完整安装。已提醒用户必须先成功执行 `pnpm install`，再启动项目。
@@ -92,3 +94,4 @@
   - 针对子页面返回按钮失效：修改了所有子页面（聊天、论文、专利、软著、项目）的 `handleBack` 方法，增加 `Taro.getCurrentPages().length > 1` 的判断。如果历史栈有上一页则调用 `navigateBack`，如果为空（如刷新页面后）则调用 `redirectTo` 强制跳回 `/pages/home/index`。
   - 针对项目页面排版瑕疵：重构了 `pages/project/index.tsx` 中的详情展示区域，将时间和身份通过 Flexbox 进行横向排列；并在数据模型中新增了 `status` 字段，配合绝对定位在卡片右上角渲染出了状态角标。
   - 针对排版微调：在 `pages/project/index.tsx` 中调整了 Flex 元素的上下顺序，使得标签始终处于上方；并将 `已结项` 的样式类修改为 `from-blue-500 to-cyan-500`，实现了蓝色的渐变底色。
+  - 针对聊天无回复报错：通过分析 `src/pages/chat/index.tsx` 发现传递给 `sendChatStream` 函数的 `appId` 参数为空。从环境变量中读取 `TARO_APP_APP_ID` 并赋值给 `appId` 参数，完成对后端云函数的身份授权。
