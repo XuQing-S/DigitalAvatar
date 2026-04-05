@@ -45,6 +45,7 @@ const Chat = () => {
 
     try {
       const supabaseUrl = process.env.TARO_APP_SUPABASE_URL
+      const appId = process.env.TARO_APP_APP_ID || ''
       let fullContent = ''
 
       // 构建完整的 messages 数组
@@ -56,7 +57,7 @@ const Chat = () => {
 
       const { abort } = sendChatStream({
         endpoint: `${supabaseUrl}/functions/v1/chat-with-digital-twin`,
-        appId: '',
+        appId: appId,
         messages: allMessages,
         onUpdate: (rawData: string) => {
           try {
