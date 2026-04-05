@@ -42,12 +42,46 @@ export default defineConfig<'vite'>(async (merge) => {
     framework: 'react',
     compiler: {
       type: 'vite',
-      vite: {
-        build: {
-          assetsInlineLimit: 4096
-        }
-      },
       vitePlugins: [
+        {
+          name: 'vite-plugin-assets-limit',
+          config(config) {
+            config.build = config.build || {}
+            config.build.assetsInlineLimit = 4096
+            config.build.rollupOptions = config.build.rollupOptions || {}
+            config.build.rollupOptions.output = {
+              assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+              chunkFileNames: 'static/js/[name]-[hash].js',
+              entryFileNames: 'static/js/[name]-[hash].js',
+              manualChunks(id) {
+                if (id.includes('node_modules')) {
+                  return 'vendor'
+                }
+                if (id.includes('src/assets/images/patent')) {
+                  const match = id.match(/patent(\d+)\.png/)
+                  if (match) {
+                    return `patent-img-${match[1]}`
+                  }
+                  return 'patent-images'
+                }
+                if (id.includes('src/assets/images/software')) {
+                  const match = id.match(/software(\d+)\.png/)
+                  if (match) {
+                    return `software-img-${match[1]}`
+                  }
+                  return 'software-images'
+                }
+                if (id.includes('src/assets/images/paper')) {
+                  const match = id.match(/paper(\d+)\.png/)
+                  if (match) {
+                    return `paper-img-${match[1]}`
+                  }
+                  return 'paper-images'
+                }
+              }
+            }
+          }
+        },
         {
           // 通过 vite 插件加载 postcss,
           name: 'postcss-config-loader-plugin',
